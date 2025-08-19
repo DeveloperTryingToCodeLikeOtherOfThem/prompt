@@ -1,1 +1,1 @@
-game.showLongText(askuserForInput("who are you"), DialogLayout.Bottom)
+game.showLongText(askuserForInput("who are you", 30), DialogLayout.Bottom)

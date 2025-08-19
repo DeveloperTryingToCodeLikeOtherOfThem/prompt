@@ -137,61 +137,63 @@ class Prompt {
     }
 
     protected drawInputArea() {
-        const answerLeft = ROW_LEFT + Math.floor(
-            ((CELL_WIDTH * ALPHABET_ROW_LENGTH) -
-                CELL_WIDTH * Math.min(this.answerLength, ALPHABET_ROW_LENGTH)) / 2);
+        const maxPerLine = 12; // wrap at 12 characters
+        const lines: string[] = [];
 
-        for (let i = 0; i < this.answerLength; i++) {
-            const col = i % ALPHABET_ROW_LENGTH;
-            const row = Math.floor(i / ALPHABET_ROW_LENGTH);
+        // --- split text into lines of 12 ---
+        for (let i = 0; i < this.result.length; i += maxPerLine) {
+            lines.push(this.result.substr(i, maxPerLine));
+        }
 
-            if (this.selectionStart !== this.selectionEnd && i >= this.selectionStart && i < this.selectionEnd) {
-                screen.fillRect(
-                    answerLeft + col * CELL_WIDTH,
-                    INPUT_TOP + row * CELL_HEIGHT,
-                    CELL_WIDTH,
-                    CELL_HEIGHT,
-                    this.theme.colorCursor
-                );
-            }
+        // --- add cursor ▌ ---
+        if (this.selectionStart === this.selectionEnd && this.selectionStart < this.answerLength) {
+            let cursorRow = Math.floor(this.selectionStart / maxPerLine);
+            let cursorCol = this.selectionStart % maxPerLine;
 
-            screen.fillRect(
-                answerLeft + col * CELL_WIDTH + BLANK_PADDING,
-                INPUT_TOP + row * CELL_HEIGHT + CELL_HEIGHT - 1,
-                CELL_WIDTH - BLANK_PADDING * 2,
-                1,
-                !this.useSystemKeyboard && !this.blink() && i === this.selectionStart ? this.theme.colorInputHighlighted : this.theme.colorInput
-            );
-
-            if (i < this.result.length) {
-                const char = this.result.charAt(i);
-                screen.print(
-                    char,
-                    answerLeft + col * CELL_WIDTH + LETTER_OFFSET_X,
-                    INPUT_TOP + row * CELL_HEIGHT + LETTER_OFFSET_Y,
-                    this.theme.colorInputText,
-                    font
-                );
+            if (!this.blink()) {
+                while (lines.length <= cursorRow) lines.push("");
+                let current = lines[cursorRow];
+                lines[cursorRow] =
+                    current.substr(0, cursorCol) + "▌" + current.substr(cursorCol);
             }
         }
 
-        // draw the blinking text cursor
-        if (this.useSystemKeyboard) {
-            if (this.selectionStart === this.selectionEnd && this.selectionStart < this.answerLength) {
-                const col = this.selectionStart % ALPHABET_ROW_LENGTH;
-                const row = Math.floor(this.selectionStart / ALPHABET_ROW_LENGTH);
-                if (!this.blink()) {
-                    screen.fillRect(
-                        answerLeft + col * CELL_WIDTH,
-                        INPUT_TOP + row * CELL_HEIGHT,
-                        1,
-                        CELL_HEIGHT,
-                        this.theme.colorCursor
-                    );
-                }
-            }
+        // --- draw rounded "chat input" box ---
+        const boxWidth = screen.width - 16; // margins left/right
+        const boxHeight = CELL_HEIGHT * Math.max(1, lines.length) + 8;
+        const boxX = 8;
+        const boxY = INPUT_TOP;
+
+        // outer border (black)
+        screen.fillRect(boxX, boxY, boxWidth, boxHeight, 0);
+        // inner box (dark gray)
+        screen.fillRect(boxX + 2, boxY + 2, boxWidth - 4, boxHeight - 4, 6);
+
+        // --- placeholder text if empty ---
+        if (!this.result.length) {
+            screen.print(
+                "Ask anything...",
+                boxX + 6,
+                boxY + 6,
+                13, // light gray text
+                font
+            );
+            return;
+        }
+
+        // --- print each line of wrapped text ---
+        for (let row = 0; row < lines.length; row++) {
+            screen.print(
+                lines[row],
+                boxX + 6,
+                boxY + 6 + row * CELL_HEIGHT,
+                this.theme.colorInputText,
+                font
+            );
         }
     }
+
+
 
     protected drawKeyboard() {
         const top = screen.height - BOTTOM_BAR_HEIGHT - this.keyboardRows * CELL_HEIGHT - PADDING;
