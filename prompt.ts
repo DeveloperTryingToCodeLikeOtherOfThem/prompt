@@ -128,10 +128,10 @@ class Prompt {
             }
 
             if (!systemKeyboardText) {
-                systemKeyboardText = new sprites.RenderText(helpers._getLocalizedInstructions(), CONTENT_WIDTH);
-            }
+                systemKeyboardText = new sprites.RenderText("", CONTENT_WIDTH);
+            } 
 
-            screen.fillRect(0, screen.height - (PADDING << 1) - systemKeyboardText.height, screen.width, screen.height, this.theme.colorBottomBackground);
+            // screen.fillRect(0, screen.height - (PADDING << 1) - systemKeyboardText.height, screen.width, screen.height, this.theme.colorBottomBackground);
             systemKeyboardText.draw(screen, PADDING, screen.height - PADDING - systemKeyboardText.height, this.theme.colorBottomText);
         });
     }

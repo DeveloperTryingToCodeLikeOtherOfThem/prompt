@@ -1,1 +1,2 @@
-game.showLongText(askuserForInput("who are you", 30), DialogLayout.Bottom)
+let words = ""
+game.showLongText(words + "You said" + " " + askuserForInput("who are you", 84), DialogLayout.Bottom)
